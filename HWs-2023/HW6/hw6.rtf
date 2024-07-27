@@ -1,0 +1,65 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;\f1\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 create table hw6.AuditTable\
+(\
+    id int identity primary key,\
+    eventType nvarchar(255),\
+    dateTime datetime,\
+    UserName nvarchar(255),\
+    DatabaseName nvarchar(255),\
+    SchemaName nvarchar(255),\
+    TSQLCommand nvarchar(max),\
+)\
+\
+create or alter trigger AuditTrigger on database\
+    for create_table, alter_table, drop_table\
+    as\
+        declare @eventType nvarchar(255)\
+        declare @dateTime datetime\
+        declare @UserName nvarchar(255)\
+        declare @DatabaseName nvarchar(255)\
+        declare @SchemaName nvarchar(255)\
+        declare @TSQLCommand nvarchar(max)\
+\
+        select @eventType = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/EventType)[1]', 'nvarchar(255)')\
+        select @dateTime = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/PostTime)[1]', 'datetime')\
+        select @UserName = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/LoginName)[1]', 'nvarchar(255)')\
+        select @DatabaseName = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/DatabaseName)[1]', 'nvarchar(255)')\
+        select @SchemaName = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/SchemaName)[1]', 'nvarchar(255)')\
+        select @TSQLCommand = 
+\f1\i EVENTDATA
+\f0\i0 ().
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/TSQLCommand)[1]', 'nvarchar(max)')\
+\
+        insert into hw6.AuditTable (eventType, dateTime, UserName, DatabaseName, SchemaName, TSQLCommand) values (@eventType, @dateTime, @UserName, @DatabaseName, @SchemaName, @TSQLCommand)\
+\
+create table hw6.dummy (id int identity primary key, name nvarchar(255))\
+alter table hw6.dummy add age int\
+drop table hw6.dummy\
+}

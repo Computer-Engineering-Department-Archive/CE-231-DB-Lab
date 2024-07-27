@@ -1,0 +1,201 @@
+-- 1
+
+create table exam.SourceBook
+(
+    SourceBookID int identity(500, 10) primary key,
+    PublishDate datetime not null,
+    AuthorBirthday datetime not null check(datediff(year, AuthorBirthday, getdate()) >= 18),
+    AuthorName nvarchar(255) not null,
+)
+
+create table exam.Course
+(
+    CourseID int identity primary key,
+    CourseName nvarchar(255) not null,
+    CourseInstructor nvarchar(255) not null,
+    InstructorID int not null,
+)
+
+create table exam.CourseSourceBook
+(
+    SemesterNumber int not null,
+    Date datetime not null,
+    SourceBookID int not null,
+    CourseID int not null,
+
+    foreign key (SourceBookID) references exam.SourceBook(SourceBookID),
+    foreign key (CourseID) references exam.Course(CourseID),
+)
+
+-- 1.A
+insert into exam.SourceBook (PublishDate, AuthorBirthday, AuthorName) values ('2019-01-01', '2020-01-01', 'Baby Author')
+-- 1.B
+insert into exam.SourceBook (PublishDate, AuthorBirthday, AuthorName) values ('2019-01-01', '1980-01-01', 'Author 1')
+insert into exam.SourceBook (PublishDate, AuthorBirthday, AuthorName) values ('2019-01-01', '1990-01-01', 'Author 2')
+insert into exam.SourceBook (PublishDate, AuthorBirthday, AuthorName) values ('2019-01-01', '2000-01-01', 'Author 3')
+select * from exam.SourceBook
+
+insert into exam.Course (CourseName, CourseInstructor, InstructorID) values ('Course 1', 'Instructor 1', 1)
+insert into exam.Course (CourseName, CourseInstructor, InstructorID) values ('Course 2', 'Instructor 2', 2)
+insert into exam.Course (CourseName, CourseInstructor, InstructorID) values ('Course 3', 'Instructor 3', 3)
+
+insert into exam.CourseSourceBook (SemesterNumber, Date, SourceBookID, CourseID) values (1, getdate(), 510, 1)
+insert into exam.CourseSourceBook (SemesterNumber, Date, SourceBookID, CourseID) values (2, getdate(), 520, 2)
+insert into exam.CourseSourceBook (SemesterNumber, Date, SourceBookID, CourseID) values (3, getdate(), 530, 3)
+
+-- 2
+
+create table exam.CourseAudit
+(
+    CourseID int not null,
+    CourseRegisterDate datetime not null,
+    CourseName nvarchar(255) not null,
+)
+
+create or alter trigger trgCourseAudit on exam.Course after insert
+    as
+    begin
+        declare @cid int
+        declare @cname nvarchar(255)
+
+        select @cid = CourseID from inserted
+        select @cname = CourseName from inserted
+
+        print @cid
+        print @cname
+
+        insert into exam.CourseAudit (CourseID, CourseRegisterDate, CourseName) values (@cid, getdate(), @cname)
+    end
+
+insert into exam.Course (CourseName, CourseInstructor, InstructorID) values ('Course Audit 1', 'Instructor 4', 1)
+select * from exam.CourseAudit
+
+-- 3
+
+create or alter function funcDeathCountdown (@birthday datetime)
+returns int
+as
+begin
+    declare @days int
+    set @days = datediff(day, getdate(), dateadd(year, 120, @birthday))
+    return @days
+end
+
+select dbo.funcDeathCountdown('2001-09-02')
+
+-- 4
+
+create procedure procRegisterCourseSourceBook
+    @cid int,
+    @sn int,
+    @bid int
+as
+begin
+    insert into exam.CourseSourceBook (SemesterNumber, Date, SourceBookID, CourseID) values (@sn, getdate(), @bid, @cid)
+end
+
+exec procRegisterCourseSourceBook 1, 1, 510
+exec procRegisterCourseSourceBook 2, 2, 520
+exec procRegisterCourseSourceBook 3, 3, 530
+
+-- 5
+
+create table exam.log1
+(
+    id int identity primary key,
+    dateTime datetime not null,
+    eventType nvarchar(255)
+)
+
+create or alter trigger trgLogEvent on all server for create_table, alter_table, drop_table
+    as
+    begin
+        declare @eventType nvarchar(255)
+        set @eventType = eventdata().value('(/EVENT_INSTANCE/EventType)[1]', 'nvarchar(255)')
+        rollback
+        insert into exam.log1 (dateTime, eventType) values (getdate(), @eventType)
+        print 'This action is forbidden Choom!'
+    end
+
+create table exam.randomTable
+(
+    id int identity primary key,
+    name nvarchar(255) not null
+)
+alter table exam.Course add age int not null default 0
+drop table exam.CourseSourceBook
+
+select * from exam.log1
+
+-- 6
+
+create or alter procedure procEnableDisableTrigger
+    @enable int
+as
+begin
+    if @enable = 1
+    begin
+        enable trigger trgLogEvent on all server
+    end
+    else
+    begin
+        disable trigger trgLogEvent on all server
+    end
+end
+
+select * from exam.log1
+
+exec procEnableDisableTrigger 0
+create table exam.randomTable
+(
+    id int identity primary key,
+    name nvarchar(255) not null
+)
+
+exec procEnableDisableTrigger 1
+create table exam.randomTable2
+(
+    id int identity primary key,
+    name nvarchar(255) not null
+)
+
+select * from exam.log1
+
+-- 7
+
+exec procEnableDisableTrigger 0
+
+create table exam.Student
+(
+    studentID int identity primary key,
+    sName nvarchar(255) not null,
+    age int not null
+)
+
+insert into exam.Student (sName, age) values ('Student 1', 20)
+insert into exam.Student (sName, age) values ('Student 2', 30)
+insert into exam.Student (sName, age) values ('Student 3', 40)
+select * from exam.Student -- Select 1
+
+set implicit_transactions on
+-- Query 1
+insert into exam.Student (sName, age) values ('Student 4', 20)
+insert into exam.Student (sName, age) values ('Student 5', 30)
+insert into exam.Student (sName, age) values ('Student 6', 40)
+select * from exam.Student -- Select 2
+
+-- Query 2
+insert into exam.Student (sName, age) values ('Student 7', 20)
+insert into exam.Student (sName, age) values ('Student 8', 30)
+insert into exam.Student (sName, age) values ('Student 9', 40)
+select * from exam.Student -- Select 3
+
+-- Query 3
+insert into exam.Student (sName, age) values ('Student 10', 20)
+insert into exam.Student (sName, age) values ('Student 11', 30)
+insert into exam.Student (sName, age) values ('Student 12', 40)
+select * from exam.Student -- Select 4
+rollback
+select * from exam.Student -- Select 5
+
+set implicit_transactions off

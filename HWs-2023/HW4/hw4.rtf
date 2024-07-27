@@ -1,0 +1,208 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;\f1\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 create table hw4.tblstudent\
+(\
+    stuName nvarchar(255) not null,\
+    stuID int identity primary key,\
+    stuGrade real not null,\
+)\
+\
+insert into hw4.tblstudent (stuName, stuGrade) values ('John', 16);\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jane', 3);\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jim', 7);\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jill', 5);\
+\
+create procedure 
+\f1\i studentStats\
+
+\f0\i0 as\
+    declare @lowCount int\
+    select @lowCount = 
+\f1\i count
+\f0\i0 (stuID) from hw4.tblstudent where stuGrade < 10\
+    if @lowCount = 1\
+        begin\
+            print 'GOOD'\
+        end\
+    else if @lowCount = 2 or @lowCount = 3\
+        begin\
+            print 'NORMAL'\
+        end\
+    else\
+        begin\
+            print 'BAD'\
+        end\
+\
+execute 
+\f1\i studentStats\
+\
+
+\f0\i0 insert into hw4.tblstudent (stuName, stuGrade) values ('Jack', 2);\
+\
+execute 
+\f1\i studentStats\
+\
+
+\f0\i0 -- 2\
+\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jim', 9.5);\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jill', 9);\
+\
+create procedure 
+\f1\i studentStats2\
+
+\f0\i0 @num int\
+as\
+    declare @lowCount int\
+    select @lowCount = 
+\f1\i count
+\f0\i0 (stuID) from hw4.tblstudent where stuGrade < 10\
+    if @lowCount < @num\
+        begin\
+            update hw4.tblstudent set stuGrade = stuGrade + 1 where stuGrade < 10 and stuGrade >= 9\
+        end\
+    else\
+        begin\
+            update hw4.tblstudent set stuGrade = stuGrade + 0.5 where stuGrade < 10 and stuGrade >= 9.5\
+        end\
+\
+execute 
+\f1\i studentStats2 
+\f0\i0 @num = 10\
+select * from hw4.tblstudent\
+\
+insert into hw4.tblstudent (stuName, stuGrade) values ('Jill', 9.5);\
+select * from hw4.tblstudent\
+\
+execute 
+\f1\i studentStats2 
+\f0\i0 @num = 3\
+select * from hw4.tblstudent\
+\
+-- 3\
+\
+create procedure 
+\f1\i swap\
+
+\f0\i0 @num1 int, @num2 int\
+as\
+    print @num1\
+    print @num2\
+\
+    declare @temp int\
+    set @temp = @num1\
+    set @num1 = @num2\
+    set @num2 = @temp\
+\
+    print @num1\
+    print @num2\
+\
+execute 
+\f1\i swap 
+\f0\i0 @num1 = 123, @num2 = 24\
+\
+-- 4\
+\
+insert into hw4.tblstudent (stuName, stuGrade) values ('ali', 14)\
+\
+create function 
+\f1\i getScoreFunc 
+\f0\i0 (@name nvarchar(255))\
+returns real\
+as\
+    begin\
+        declare @grade real\
+        select @grade = stuGrade from hw4.tblstudent where stuName = @name\
+        return @grade\
+    end\
+\
+declare @grade real\
+exec @grade = 
+\f1\i getScoreFunc 
+\f0\i0 @name = 'ali'\
+print @grade\
+\
+-- 5\
+declare @postal table\
+(\
+    firstname nvarchar(255) not null,\
+    lastname nvarchar(255) not null,\
+    postalCode nvarchar(255) not null\
+)\
+\
+insert into @postal (firstname, lastname, postalCode) values ('Michael', 'B', '98027');\
+insert into @postal (firstname, lastname, postalCode) values ('Linda', 'M', '98027');\
+insert into @postal (firstname, lastname, postalCode) values ('Jilian', 'C', '98027');\
+insert into @postal (firstname, lastname, postalCode) values ('Garrett', 'V', '98027');\
+insert into @postal (firstname, lastname, postalCode) values ('Tsvi', 'R', '98027');\
+insert into @postal (firstname, lastname, postalCode) values ('Shu', 'I', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Jose', 'S', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('David', 'C', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Tete', 'M', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Lynn', 'T', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Rachel', 'V', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Jae', 'P', '98055');\
+insert into @postal (firstname, lastname, postalCode) values ('Ranjit', 'V', '98055');\
+\
+select *, 
+\f1\i ROW_NUMBER
+\f0\i0 () over (order by postalCode), 
+\f1\i RANK
+\f0\i0 () over (order by postalCode), 
+\f1\i DENSE_RANK
+\f0\i0 () over (order by postalCode) from @postal\
+\
+-- 6\
+create function 
+\f1\i fourDaysLater 
+\f0\i0 (@nowDate datetime)\
+returns datetime\
+as\
+    begin\
+        declare @newDate datetime\
+        return 
+\f1\i dateadd
+\f0\i0 (day, 4, @nowDate)\
+    end\
+\
+declare @now datetime\
+select @now = 
+\f1\i getdate
+\f0\i0 ()\
+declare @newDate datetime\
+exec @newDAte = 
+\f1\i fourDaysLater 
+\f0\i0 @nowDate = @now\
+\
+print(@now)\
+print(@newDate)\
+print(
+\f1\i datename
+\f0\i0 (dd, @newDate))\
+\
+-- 7\
+create table sampleTable (\
+    id int primary key,\
+    originalDate datetime,\
+    modifiedDate datetime\
+);\
+\
+declare @now datetime\
+set @now = 
+\f1\i getdate
+\f0\i0 ()\
+insert into sampleTable (id, originalDate, modifiedDate) values (1, 
+\f1\i getdate
+\f0\i0 (), 
+\f1\i dateadd
+\f0\i0 (day, 4, 
+\f1\i getdate
+\f0\i0 ()));\
+\
+\
+}

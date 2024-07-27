@@ -1,0 +1,119 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;\f1\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 create table hw5.book\
+(\
+    id int identity primary key,\
+    bookName nvarchar(30),\
+    yearPublish int,\
+    authorName nvarchar(40),\
+    QTY int,\
+)\
+\
+-- 1\
+create trigger noChange on hw5.book\
+    instead of insert\
+    as\
+        begin\
+            print 'No changes was done'\
+        end\
+\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book1', 2000, 'Author1', 10)\
+\
+-- 2\
+create table hw5.book_audit\
+(\
+    ins_or_del int,\
+    bookName nvarchar(30),\
+    yearPublish int,\
+    authorName nvarchar(40),\
+    QTY int,\
+)\
+\
+disable trigger noChange on hw5.book\
+\
+create trigger audit on hw5.book\
+    after insert, delete\
+    as\
+        declare @ins_or_del int\
+        select @ins_or_del = 1\
+        insert into hw5.book_audit (ins_or_del, bookName, yearPublish, authorName, QTY) select @ins_or_del, bookName, yearPublish, authorName, QTY from inserted\
+        select @ins_or_del = 0\
+        insert into hw5.book_audit (ins_or_del, bookName, yearPublish, authorName, QTY) select @ins_or_del, bookName, yearPublish, authorName, QTY from deleted\
+\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book2', 2001, 'Author2', 20)\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book3', 2002, 'Author3', 30)\
+delete from hw5.book where id = 1\
+select * from hw5.book_audit\
+\
+-- 3\
+create or alter trigger provokeBookNameChange on hw5.book\
+    after update\
+    as\
+\
+    if 
+\f1\i exists
+\f0\i0 (\
+        select 1\
+        from inserted, deleted\
+        where inserted.bookName != deleted.bookName\
+    ) begin\
+        print 'Book name cannot be changed'\
+        rollback\
+    end\
+\
+select * from hw5.book\
+update hw5.book set bookName = 'Book4' where id = 2\
+\
+-- 4\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book5', 2003, 'Author3', 50)\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book6', 2004, 'Author6', 60)\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book7', 2005, 'Author6', 70)\
+insert into hw5.book (bookName, yearPublish, authorName, QTY) values ('Book8', 2006, 'Author7', 80)\
+\
+create view bookQTY as\
+    select bookName, authorName, QTY from hw5.book\
+\
+create or alter trigger updateQTY on bookQTY\
+    instead of insert\
+    as\
+        begin\
+            update hw5.book\
+            set QTY = 1000\
+            where QTY < 1000\
+        end\
+\
+disable trigger provokeBookNameChange on hw5.book\
+\
+insert into bookQTY (bookName, authorName, QTY) values ('Book9', 'Author9', 900)\
+insert into bookQTY (bookName, authorName, QTY) values ('Book10', 'Author10', 1100)\
+select * from bookQTY\
+\
+-- 5\
+\
+create or alter trigger preventBookDrop\
+on database\
+for DROP_TABLE\
+as\
+begin\
+    declare @EventData XML;\
+    set @EventData = 
+\f1\i EVENTDATA
+\f0\i0 ();\
+\
+    if @EventData.
+\f1\i value
+\f0\i0 ('(/EVENT_INSTANCE/ObjectName)[1]', 'SYSNAME') = 'book'\
+    begin\
+        print 'Cannot drop the book table'\
+        rollback transaction\
+    end\
+end\
+\
+drop table hw5.book\
+\
+}

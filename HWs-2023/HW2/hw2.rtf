@@ -1,0 +1,157 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fmodern\fcharset0 Courier;\f1\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 -- 1\
+-- A\
+\
+create table hw2.Sailor\
+(\
+    Sailor_name int identity(300, 1) primary key,\
+    Sailor_rank int not null,\
+);\
+\
+create table hw2.Boat\
+(\
+    Boat_name int identity primary key,\
+    Boat_color nvarchar(30) not null,\
+    Boat_rank int check(Boat_rank >= 70 and Boat_rank <= 150),\
+);\
+\
+create table hw2.reserve\
+(\
+    Sailor_name int not null,\
+    Boat_name int not null,\
+    Weekday nvarchar(10) not null,\
+\
+    foreign key (Sailor_name) references hw2.Sailor(Sailor_name),\
+    foreign key (Boat_name) references hw2.Boat(Boat_name),\
+);\
+\
+-- B\
+\
+insert into hw2.Sailor (Sailor_rank) values (1);\
+insert into hw2.Sailor (Sailor_rank) values (2);\
+insert into hw2.Sailor (Sailor_rank) values (3);\
+insert into hw2.Sailor (Sailor_rank) values (4);\
+\
+insert into hw2.Boat (Boat_color, Boat_rank) values ('red', 100);\
+insert into hw2.Boat (Boat_color, Boat_rank) values ('blue', 120);\
+insert into hw2.Boat (Boat_color, Boat_rank) values ('green', 140);\
+insert into hw2.Boat (Boat_color, Boat_rank) values ('yellow', 150);\
+\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (300, 1, 'Monday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (301, 2, 'Tuesday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (302, 3, 'Wednesday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (303, 4, 'Thursday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (300, 2, 'Saturday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (301, 3, 'Saturday');\
+insert into hw2.Reserve (Sailor_name, Boat_name, Weekday) values (302, 4, 'Sunday');\
+\
+-- C\
+\
+--1\
+select Boat_name from hw2.Reserve where Weekday = 'Saturday';\
+\
+--2\
+create view hw2.BoatSailor as select Boat.Boat_name, Sailor.Sailor_name, Boat_color from hw2.Boat, hw2.Sailor, hw2.Reserve where hw2.Boat.Boat_name = hw2.Reserve.Boat_name and hw2.Sailor.Sailor_name = hw2.Reserve.Sailor_name;\
+\
+--3\
+select Boat_color from hw2.Boat;\
+\
+--4\
+select Boat.Boat_name from hw2.Boat, hw2.Reserve where hw2.Boat.Boat_name = hw2.Reserve.Boat_name and (Weekday = 'Monday' or Weekday = 'Saturday');\
+\
+--5\
+select Boat_color from hw2.Boat, hw2.Reserve where Boat.Boat_name = Reserve.Boat_name and Weekday like 's%';\
+\
+-- 2\
+\
+create table hw2.Emp\
+(\
+    emp_id int identity primary key,\
+    name nvarchar(50) not null,\
+    salary int not null,\
+);\
+\
+create table hw2.Prj\
+(\
+    prj_id int identity primary key,\
+    prj_name nvarchar(255),\
+);\
+\
+create table hw2.Employee_Project\
+(\
+prj_id int not null,\
+    emp_id int not null,\
+\
+    foreign key (prj_id) references hw2.Prj(prj_id),\
+    foreign key (emp_id) references hw2.Emp(emp_id),\
+);\
+\
+--A\
+insert hw2.Emp (name, salary) values ('a', 1000);\
+insert hw2.Emp (name, salary) values ('b', 2000);\
+insert hw2.Emp (name, salary) values ('c', 3000);\
+insert hw2.Emp (name, salary) values ('d', 4000);\
+insert hw2.Emp (name, salary) values ('e', 5000);\
+insert hw2.Emp (name, salary) values ('f', 6000);\
+insert hw2.Emp (name, salary) values ('g', 7000);\
+insert hw2.Emp (name, salary) values ('h', 8000);\
+insert hw2.Emp (name, salary) values ('i', 8000);\
+insert hw2.Emp (name, salary) values ('k', 8000);\
+insert hw2.Emp (name, salary) values ('o', 8000);\
+insert hw2.Emp (name, salary) values ('manager', 8000);\
+\
+insert into hw2.Prj (prj_name) values ('A');\
+insert into hw2.Prj (prj_name) values ('B');\
+insert into hw2.Prj (prj_name) values ('C');\
+insert into hw2.Prj (prj_name) values ('D');\
+\
+-- A\
+insert into hw2.Employee_Project (emp_id, prj_id) values (12, 1);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (2, 1);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (11, 1);\
+-- B\
+insert into hw2.Employee_Project (emp_id, prj_id) values (1, 2);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (2, 2);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (3, 2);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (4, 2);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (5, 2);\
+-- C\
+insert into hw2.Employee_Project (emp_id, prj_id) values (1, 3);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (6, 3);\
+-- D\
+insert into hw2.Employee_Project (emp_id, prj_id) values (12, 4);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (6, 4);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (7, 4);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (8, 4);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (9, 4);\
+insert into hw2.Employee_Project (emp_id, prj_id) values (10, 4);\
+\
+--1\
+select prj_name, 
+\f1\i count
+\f0\i0 (emp_id) as EmployeeCount from hw2.Prj, hw2.Employee_Project where Prj.prj_id = Employee_Project.prj_id group by prj_name having 
+\f1\i count
+\f0\i0 (emp_id) < 4\
+\
+--2\
+select Emp.name, Prj.prj_name from hw2.Emp, hw2.Prj, hw2.Employee_Project where Emp.emp_id = Employee_Project.emp_id and Prj.prj_id = Employee_Project.prj_id\
+\
+--3\
+select 
+\f1\i sum
+\f0\i0 (Emp.salary) as SalarySum from hw2.Emp, hw2.Prj, hw2.Employee_Project where Emp.emp_id = Employee_Project.emp_id and Prj.prj_id = Employee_Project.prj_id and Prj.prj_name = 'B'\
+\
+--4\
+select prj_name, 
+\f1\i avg
+\f0\i0 (salary) SalaryAverage from hw2.Emp, hw2.Prj, hw2.Employee_Project where Emp.emp_id = Employee_Project.emp_id and Prj.prj_id = Employee_Project.prj_id group by prj_name\
+\
+--5\
+select prj_name from hw2.Emp, hw2.Prj, hw2.Employee_Project where Emp.emp_id = Employee_Project.emp_id and Prj.prj_id = Employee_Project.prj_id and Emp.name = 'manager'\
+}
